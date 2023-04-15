@@ -129,6 +129,7 @@ func (n *ArtNode) IsLeaf() bool {
 func (n *ArtNode) prefixMatch(key []byte, depth int) int {
 	index := 0
 	in := n.innerNode
+
 	if in.prefixLen <= MaxPrefixLen {
 
 		for ; index < in.prefixLen; index++ {
@@ -136,6 +137,7 @@ func (n *ArtNode) prefixMatch(key []byte, depth int) int {
 				return index
 			}
 		}
+		return index
 	}
 
 	// in prefixLen > MaxPrefixLen condition
