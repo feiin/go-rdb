@@ -115,6 +115,9 @@ func newLeafNode(key []byte, value interface{}) *ArtNode {
 	copy(newKey, key)
 	return &ArtNode{
 		leaf: &LeafNode{newKey, value},
+		innerNode: &InnerNode{
+			nodeType: Leaf,
+		},
 	}
 
 }

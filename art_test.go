@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestInsert(t *testing.T) {
+func TestInsertOne(t *testing.T) {
 	tree := NewTree()
 	tree.Insert([]byte("test"), "hello world")
 	if tree.root == nil {
@@ -13,10 +13,19 @@ func TestInsert(t *testing.T) {
 	if tree.size != 1 {
 		t.Error("invalid size")
 	}
-	t.Logf("insert tree.innerNode:%+v", tree.root.innerNode)
+	t.Logf("insert tree.innerNode:%+v", tree.root)
 
-	if tree.root != nil && tree.root.innerNode.nodeType != Leaf {
-		t.Error("invalid nodeType")
+	if !tree.root.IsLeaf() {
+		t.Error("invalid error")
 	}
-	t.Logf("insert tree:%+v", tree)
+
+	value := tree.Search([]byte("test"))
+	if value == nil {
+		t.Error("invalid search")
+	}
+	if value.(string) != "hello world" {
+		t.Error("invalid value")
+	}
+
+	t.Logf("insert value:%+v", value)
 }
