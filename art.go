@@ -194,7 +194,6 @@ func (in *InnerNode) findChild(key byte) **ArtNode {
 	}
 
 	index := in.index(key)
-
 	switch in.nodeType {
 	case Node4, Node16, Node48:
 		if index >= 0 {
@@ -213,7 +212,7 @@ func (in *InnerNode) findChild(key byte) **ArtNode {
 
 func (in *InnerNode) index(key byte) int {
 	switch in.nodeType {
-	case Node4, 16:
+	case Node4, Node16:
 		for i := 0; i < in.size; i++ {
 			if in.keys[i] == key {
 				return i
@@ -700,8 +699,8 @@ func (t *ArtTree) search(current *ArtNode, key []byte, depth int) interface{} {
 		if current.prefixMatch(key, depth) != in.prefixLen {
 			return nil
 		}
-		depth += in.prefixLen
 
+		depth += in.prefixLen
 		next := in.findChild(key[depth])
 
 		if next == nil {
