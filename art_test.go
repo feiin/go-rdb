@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -107,5 +108,73 @@ func TestInsertExpand(t *testing.T) {
 	if v5.(string) != "v5" {
 		t.Error("invalid value5")
 	}
+
+}
+
+func TestShrink2Node4(t *testing.T) {
+	tree := NewTree()
+	tree.Insert([]byte("1key"), "v1")
+	tree.Insert([]byte("2key"), "v2")
+	tree.Insert([]byte("3key"), "v3")
+	tree.Insert([]byte("4key"), "v4")
+	tree.Insert([]byte("5key"), "v5")
+
+	if tree.root.innerNode.nodeType != Node16 {
+		t.Errorf("invalid nodeType:%d", tree.root.innerNode.nodeType)
+	}
+
+	tree.Delete([]byte("5key"))
+
+	if tree.root.innerNode.nodeType != Node4 {
+		t.Errorf("invalid nodeType:%d", tree.root.innerNode.nodeType)
+	}
+
+	v1 := tree.Search([]byte("1key"))
+	t.Logf("insert value1:%+v", v1)
+
+	if v1.(string) != "v1" {
+		t.Error("invalid value1")
+	}
+
+	v5 := tree.Search([]byte("5key"))
+	t.Logf("insert value5:%+v", v5)
+}
+
+func TestShrink2Node16(t *testing.T) {
+	n := newNode48()
+
+	for i := 0; i < n.innerNode.minSize(); i++ {
+		n.innerNode.addChild(byte(i), newNode16())
+	}
+
+	if n.innerNode.nodeType != Node48 {
+		t.Errorf("invalid nodeType:%d", n.innerNode.nodeType)
+	}
+
+	n.deleteChild(byte(0))
+
+	if n.innerNode.nodeType != Node16 {
+		t.Errorf("shrink invalid nodeType:%d", n.innerNode.nodeType)
+	}
+}
+
+func TestShrink2Node48(t *testing.T) {
+	n := newNode256()
+
+	for i := 0; i < n.innerNode.minSize(); i++ {
+		n.innerNode.addChild(byte(i), newNode16())
+	}
+
+	if n.innerNode.nodeType != Node256 {
+		t.Errorf("invalid nodeType:%d", n.innerNode.nodeType)
+	}
+
+	n.deleteChild(byte(0))
+
+	if n.innerNode.nodeType != Node48 {
+		t.Errorf("shrink invalid nodeType:%d", n.innerNode.nodeType)
+	}
+
+	fmt.Printf("result innerNode:%+v", n.innerNode)
 
 }

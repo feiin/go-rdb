@@ -479,7 +479,7 @@ func (n *ArtNode) shrink() {
 		n4in.prefix = n.innerNode.prefix
 		n4in.prefixLen = n.innerNode.prefixLen
 
-		for i := 0; i < len(in.keys); i++ {
+		for i := 0; i < in.size; i++ {
 			n4in.keys[i] = in.keys[i]
 			n4in.children[i] = in.children[i]
 			n4in.size++
