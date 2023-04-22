@@ -178,3 +178,39 @@ func TestShrink2Node48(t *testing.T) {
 	fmt.Printf("result innerNode:%+v", n.innerNode)
 
 }
+
+func TestGrow16(t *testing.T) {
+	n := newNode4()
+
+	for i := 0; i < n.innerNode.maxSize(); i++ {
+		n.innerNode.addChild(byte(i), newNode16())
+	}
+
+	if n.innerNode.nodeType != Node4 {
+		t.Errorf("invalid nodeType:%d", n.innerNode.nodeType)
+	}
+
+	n.innerNode.addChild(byte(4), newNode16())
+
+	if n.innerNode.nodeType != Node16 {
+		t.Errorf("grow invalid nodeType:%d", n.innerNode.nodeType)
+	}
+}
+
+func TestGrow48(t *testing.T) {
+	n := newNode16()
+
+	for i := 0; i < n.innerNode.maxSize(); i++ {
+		n.innerNode.addChild(byte(i), newNode16())
+	}
+
+	if n.innerNode.nodeType != Node16 {
+		t.Errorf("invalid nodeType:%d", n.innerNode.nodeType)
+	}
+
+	n.innerNode.addChild(byte(16), newNode16())
+
+	if n.innerNode.nodeType != Node48 {
+		t.Errorf("grow invalid nodeType:%d", n.innerNode.nodeType)
+	}
+}
