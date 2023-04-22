@@ -5,9 +5,9 @@
 
 ## 实现
 
-- [ ] 使用ART做内存索引
+- [x] 使用ART做内存索引
 - 实现数据结构
-    - [ ] string
+    - [x] string
     - [ ] list
     - [ ] sortset
     - [ ] set
