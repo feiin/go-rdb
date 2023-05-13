@@ -1,7 +1,5 @@
 package rdb
 
-var db = NewTree()
-
 func Get(key string) (interface{}, error) {
 	return db.Search([]byte(key)), nil
 }
