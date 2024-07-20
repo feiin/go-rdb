@@ -1,3 +1,3 @@
-module github.com/feiin/go-rdb
+module gordb
 
 go 1.18
