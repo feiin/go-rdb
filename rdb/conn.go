@@ -2,7 +2,8 @@ package rdb
 
 import (
 	"bufio"
-	"fmt"
+	"context"
+	"gordb/pkg/logger"
 	"net"
 	"sync/atomic"
 	"time"
@@ -24,16 +25,16 @@ func (c *Conn) Err() error {
 	return c.err
 }
 
-func (c *Conn) Close() error {
+func (c *Conn) Close(ctx context.Context) error {
 	if c.closed.Load() {
 		return nil
 	}
 
-	c.cleanup()
+	c.cleanup(ctx)
 	return nil
 }
 
-func (c *Conn) cleanup() {
+func (c *Conn) cleanup(ctx context.Context) {
 	if c.closed.Swap(true) {
 		return
 	}
@@ -43,6 +44,6 @@ func (c *Conn) cleanup() {
 	}
 	err := c.conn.Close()
 	if err != nil {
-		fmt.Printf("conn close error: %v", err)
+		logger.ErrorWith(ctx, err).Msg("conn cleanup error")
 	}
 }

@@ -80,7 +80,7 @@ func (s *Server) serveConn(ctx context.Context, conn net.Conn) {
 					c.err = err
 					logger.ErrorWith(ctx, err).Msg("parseRESP error")
 					if errors.Is(err, io.EOF) {
-						c.Close()
+						c.Close(ctx)
 					}
 					break
 				}
