@@ -9,12 +9,13 @@ import (
 )
 
 type Conn struct {
-	conn     net.Conn
-	br       *bufio.Reader
-	bw       *bufio.Writer
-	closed   atomic.Bool
-	idleTime time.Time
-	err      error
+	conn       net.Conn
+	br         *bufio.Reader
+	bw         *bufio.Writer
+	closed     atomic.Bool
+	idleTime   time.Time
+	err        error
+	remoteAddr string
 
 	closech chan struct{}
 }

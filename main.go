@@ -1,17 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"gordb/pkg/logger"
 	"gordb/rdb"
 )
 
 func main() {
 	addr := ":6378"
-	s, err := rdb.NewServer(addr)
+	ctx := context.WithValue(context.Background(), "name", "gordb")
+	s, err := rdb.NewServer(ctx, addr)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("Server running on %s", addr)
+	logger.Info(ctx).Str("addr", addr).Msg("Server is running")
 	s.Serve()
-	fmt.Println("Server stopped")
+	logger.Info(ctx).Str("addr", addr).Msg("Server stopped")
 }

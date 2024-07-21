@@ -2,8 +2,9 @@ package rdb
 
 import (
 	"bufio"
+	"context"
 	"errors"
-	"fmt"
+	"gordb/pkg/logger"
 	"io"
 	"net"
 	"sync"
@@ -16,9 +17,10 @@ type Server struct {
 	conns  map[*Conn]struct{}
 	mu     sync.Mutex
 	Closed atomic.Bool
+	ctx    context.Context
 }
 
-func NewServer(addr string) (*Server, error) {
+func NewServer(ctx context.Context, addr string) (*Server, error) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
@@ -28,6 +30,7 @@ func NewServer(addr string) (*Server, error) {
 		ln:    l,
 		laddr: l.Addr().String(),
 		conns: map[*Conn]struct{}{},
+		ctx:   ctx,
 	}
 	return s, nil
 }
@@ -38,7 +41,8 @@ func (s *Server) Serve() error {
 		if err != nil {
 			return err
 		}
-		go s.serveConn(conn)
+		ctx := context.WithValue(s.ctx, "remoteAddr", conn.RemoteAddr().String())
+		go s.serveConn(ctx, conn)
 	}
 }
 
@@ -48,12 +52,13 @@ func (s *Server) removeConn(c *Conn) {
 	s.mu.Unlock()
 }
 
-func (s *Server) serveConn(conn net.Conn) {
+func (s *Server) serveConn(ctx context.Context, conn net.Conn) {
 	c := &Conn{
-		conn:    conn,
-		br:      bufio.NewReader(conn),
-		bw:      bufio.NewWriter(conn),
-		closech: make(chan struct{}),
+		conn:       conn,
+		br:         bufio.NewReader(conn),
+		bw:         bufio.NewWriter(conn),
+		closech:    make(chan struct{}),
+		remoteAddr: conn.RemoteAddr().String(),
 	}
 	s.mu.Lock()
 	s.conns[c] = struct{}{}
@@ -73,7 +78,7 @@ func (s *Server) serveConn(conn net.Conn) {
 				if err != nil {
 					// TODO: handle error
 					c.err = err
-					fmt.Printf("parseRESP error: %v", err)
+					logger.ErrorWith(ctx, err).Msg("parseRESP error")
 					if errors.Is(err, io.EOF) {
 						c.Close()
 					}
@@ -87,7 +92,7 @@ func (s *Server) serveConn(conn net.Conn) {
 
 	// TODO: handle client requests here
 	for cmd := range readCh {
-		fmt.Printf("cmdLine: %+v \n", cmd)
+		logger.Info(ctx).Interface("cmd", cmd).Msg("cmd received")
 		c.bw.WriteString("+OK\r\n")
 		c.bw.Flush()
 	}
