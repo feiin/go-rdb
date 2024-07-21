@@ -2,7 +2,9 @@ package rdb
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -40,6 +42,12 @@ func (s *Server) Serve() error {
 	}
 }
 
+func (s *Server) removeConn(c *Conn) {
+	s.mu.Lock()
+	delete(s.conns, c)
+	s.mu.Unlock()
+}
+
 func (s *Server) serveConn(conn net.Conn) {
 	c := &Conn{
 		conn:    conn,
@@ -58,16 +66,18 @@ func (s *Server) serveConn(conn net.Conn) {
 		for {
 			select {
 			case <-c.closech:
+				s.removeConn(c)
 				return
 			default:
 				resp, err := parseRESP(c.br)
 				if err != nil {
 					// TODO: handle error
-					fmt.Printf("error %+v", err)
-					// if err == io.EOF {
-
-					// }
-					return
+					c.err = err
+					fmt.Printf("parseRESP error: %v", err)
+					if errors.Is(err, io.EOF) {
+						c.Close()
+					}
+					break
 				}
 				readCh <- resp
 			}
@@ -77,7 +87,7 @@ func (s *Server) serveConn(conn net.Conn) {
 
 	// TODO: handle client requests here
 	for cmd := range readCh {
-		fmt.Printf("cmdLine: %+v ", cmd)
+		fmt.Printf("cmdLine: %+v \n", cmd)
 		c.bw.WriteString("+OK\r\n")
 		c.bw.Flush()
 	}
