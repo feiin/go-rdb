@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"gordb/pkg/logger"
 	"io"
 	"net"
@@ -93,7 +94,14 @@ func (s *Server) serveConn(ctx context.Context, conn net.Conn) {
 	// TODO: handle client requests here
 	for cmd := range readCh {
 		logger.Info(ctx).Interface("cmd", cmd).Msg("cmd received")
-		c.bw.WriteString("+OK\r\n")
+
+		if handler, ok := routers[cmd[0]]; ok {
+			handler(ctx, cmd, &RedisResponse{
+				conn: c,
+			})
+			continue
+		}
+		c.bw.WriteString(fmt.Sprintf("%cERR unknown command '%s'\r\n", Errors, cmd[0]))
 		c.bw.Flush()
 	}
 

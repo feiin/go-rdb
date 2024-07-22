@@ -3,6 +3,7 @@ package rdb
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -41,6 +42,10 @@ var (
 	errorUnknownProtocol = errors.New("unknown protocol")
 	errorUnknownCommand  = errors.New("unknown command")
 )
+
+type RedisResponse struct {
+	conn *Conn
+}
 
 // *<参数数量>CRLF
 // $<参数1的字节长度>CRLF
@@ -122,4 +127,53 @@ func parseRESPLine(rd *bufio.Reader) (string, error) {
 		return string(buf[:length]), nil
 
 	}
+}
+
+func (res *RedisResponse) WriteOK() error {
+	_, err := res.conn.bw.WriteString("+OK\r\n")
+	if err != nil {
+		return err
+	}
+	return res.conn.bw.Flush()
+}
+
+func (res *RedisResponse) WriteError(err error) error {
+	_, rErr := res.conn.bw.WriteString(fmt.Sprintf("%c%s\r\n", Errors, err.Error()))
+	if rErr != nil {
+		return rErr
+	}
+	return res.conn.bw.Flush()
+}
+
+func (res *RedisResponse) WriteString(str string) error {
+	_, err := res.conn.bw.WriteString(fmt.Sprintf("%c%s\r\n", Strings, str))
+	if err != nil {
+		return err
+	}
+	return res.conn.bw.Flush()
+}
+
+func (res *RedisResponse) WriteIntegers(ret int) error {
+	_, err := res.conn.bw.WriteString(fmt.Sprintf("%c%d\r\n", Integers, ret))
+	if err != nil {
+		return err
+	}
+	return res.conn.bw.Flush()
+}
+
+func (res *RedisResponse) WriteBulkStrings(val interface{}) error {
+
+	strVal, ok := val.(string)
+	if !ok {
+		_, err := res.conn.bw.WriteString(fmt.Sprintf("%c-1\r\n", BulkStrings))
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := res.conn.bw.WriteString(fmt.Sprintf("%c%d\r\n%s\r\n", BulkStrings, len(strVal), strVal))
+		if err != nil {
+			return err
+		}
+	}
+	return res.conn.bw.Flush()
 }

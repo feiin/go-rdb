@@ -687,7 +687,6 @@ func (t *ArtTree) Search(key []byte) interface{} {
 
 func (t *ArtTree) search(current *ArtNode, key []byte, depth int) interface{} {
 	for current != nil {
-
 		if current.IsLeaf() {
 			if current.leaf.IsMatch(key) {
 				return current.leaf.value
