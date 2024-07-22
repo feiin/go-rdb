@@ -27,6 +27,7 @@ func SetStringHandler(ctx context.Context, reqCmdArgs []string, res *RedisRespon
 		return
 	}
 
+	// TODO: optimize this for Integer
 	key := reqCmdArgs[1]
 	value := reqCmdArgs[2]
 	SetString(key, value)
